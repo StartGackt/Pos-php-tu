@@ -1,56 +1,46 @@
 <?php
-session_start();
-require_once __DIR__ . '/../connect.php';
+require_once '../php/connect.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Retrieve and sanitize input
-    $username = htmlspecialchars($_POST['username'], ENT_QUOTES, 'UTF-8');
-    $email = htmlspecialchars($_POST['email'], ENT_QUOTES, 'UTF-8');
-    $password = htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');
-    $confirm_password = htmlspecialchars($_POST['confirm-password'], ENT_QUOTES, 'UTF-8');
+$errors = [];
 
-    // Validate input
-    $errors = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirm-password'] ?? '';
+
     if (empty($username)) {
-        $errors['username'] = "Username is required.";
+        $errors['username'] = 'Username is required';
     }
+
     if (empty($email)) {
-        $errors['email'] = "Email is required.";
+        $errors['email'] = 'Email is required';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = 'Invalid email format';
     }
+
     if (empty($password)) {
-        $errors['password'] = "Password is required.";
-    } elseif ($password !== $confirm_password) {
-        $errors['confirm_password'] = "Passwords do not match.";
+        $errors['password'] = 'Password is required';
     }
 
-    // Check for existing username
-    if (empty($errors)) {
-        $stmt = $db->prepare("SELECT COUNT(*) FROM users WHERE username = :username");
-        $stmt->bindParam(':username', $username);
-        $stmt->execute();
-        if ($stmt->fetchColumn() > 0) {
-            $errors['username'] = "Username already exists. Please choose another.";
-        }
+    if ($password !== $confirmPassword) {
+        $errors['confirm_password'] = 'Passwords do not match';
     }
 
-    // If no errors, proceed to register the user
     if (empty($errors)) {
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $db->prepare("INSERT INTO users (username, email, password) VALUES (:username, :email, :password)");
-        $stmt->bindParam(':username', $username);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':password', $hashed_password);
-        
-        if ($stmt->execute()) {
-            $_SESSION['user_id'] = $db->lastInsertId();
-            header("Location: Maim.php");
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        $stmt = $db->prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
+        if ($stmt->execute([$username, $email, $hashedPassword])) {
+            header('Location: login.php');
             exit;
         } else {
-            $error = "Registration failed. Please try again.";
+            $errors['general'] = 'Registration failed. Please try again.';
         }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,17 +56,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="script.js"></script>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg ">
-    <div class="container">
-      <a class="navbar-brand" href="#">POS</a>
-        <iconify-icon icon="mdi:cart-outline" class="text-3xl">
-          asd
-        </iconify-icon>
-    </div>
-  </nav>
-<br>
+
   <div class="flex min-h-[80dvh] flex-col items-center justify-center">
+   <br>
+   <br>
+   <br>
+   
     <div class="mx-auto w-full max-w-md space-y-6">
       <div class="text-center">
         <h1 class="text-3xl font-bold tracking-tight text-foreground">Welcome to Registration</h1>
@@ -106,25 +91,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <small class="text-red-500" id="confirm-password-error"><?php echo $errors['confirm_password'] ?? ''; ?></small>
         </div>
         <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Register</button>
-        <p class="text-center mt-4">Already have an account? <a href="login.html" class="text-blue-600 hover:text-blue-800">Click here</a> to login.</p>
+        <p class="text-center mt-4">Already have an account? <a href="login.php" class="text-blue-600 hover:text-blue-800">Click here</a> to login.</p>
     </form>
 
     </div>
 
   </div>
-  <footer class="border-t py-6 px-0 text-sm text-muted-foreground fade-in">
-    <div class="container mx-auto flex justify-between">
-      <p>&copy; 2024 POS. All rights reserved.</p>
-      <div class="flex gap-4">
-        <a href="#" class="text-muted-foreground">
-          Privacy Policy
-        </a>
-        <a href="#" class="text-muted-foreground">
-          Terms of Service
-        </a>
-      </div>
-    </div>
-  </footer>
+  
 
 </body>
 </html>
