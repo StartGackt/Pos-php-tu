@@ -23,10 +23,10 @@
           <i class="fas fa-box fa-fw mr-3"></i>
           Order products
         </a>
-        <button class="w-full flex items-center px-3 py-2 hover:bg-blue-50 hover:text-blue-600">
+        <a href="allcate.php" class="w-full flex items-center px-3 py-2 hover:bg-blue-50 hover:text-blue-600 " >
           <i class="fas fa-tags fa-fw mr-3"></i>
           Categories
-        </button>
+        </a>
         <a href="productcate.php" class="w-full flex items-center px-3 py-2 hover:bg-blue-50 hover:text-blue-600">
           <i class="fas fa-utensils fa-fw mr-3"></i>
           ListMenu

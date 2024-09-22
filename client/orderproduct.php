@@ -25,7 +25,7 @@
           <i class="fas fa-box fa-fw mr-3" aria-hidden="true"></i>
           Order products
         </a>
-        <a href="productcate.php" class="w-full flex items-center px-3 py-2 hover:bg-blue-50 hover:text-blue-600 rounded-md" aria-current="page">
+        <a href="allcate.php" class="w-full flex items-center px-3 py-2 hover:bg-blue-50 hover:text-blue-600 " >
           <i class="fas fa-tags fa-fw mr-3"></i>
           Categories
         </a>
@@ -89,19 +89,18 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                 
                 
-                <div class="bg-white rounded-lg shadow hover:shadow-xl transition-shadow duration-300 cursor-pointer p-4 flex flex-col items-center" data-id="1" data-name="กาแฟดำ" data-price="35">
-                  <img src="https://via.placeholder.com/80" alt="กาแฟดำ" class="w-24 h-24 object-cover mb-4 rounded-full border-2 border-gray-200">
-                  <h3 class="font-medium text-center text-gray-800">กาแฟดำ</h3>
-                  <p class="text-sm text-gray-500">฿35</p>
+                <?php
+                require_once '../php/connect.php';
+                $stmt = $db->query('SELECT * FROM product');
+                $products = $stmt->fetchAll();
+                foreach ($products as $product):
+                ?>
+                <div class="bg-white rounded-lg shadow hover:shadow-xl transition-shadow duration-300 cursor-pointer p-4 flex flex-col items-center" data-id="<?php echo htmlspecialchars($product['id']); ?>" data-name="<?php echo htmlspecialchars($product['productName']); ?>" data-price="<?php echo htmlspecialchars($product['price']); ?>">
+                  <img src="https://via.placeholder.com/80" alt="<?php echo htmlspecialchars($product['productName']); ?>" class="w-24 h-24 object-cover mb-4 rounded-full border-2 border-gray-200">
+                  <h3 class="font-medium text-center text-gray-800"><?php echo htmlspecialchars($product['productName']); ?></h3>
+                  <p class="text-sm text-gray-500">฿<?php echo htmlspecialchars($product['price']); ?></p>
                 </div>
-      
-                
-                <div class="bg-white rounded-lg shadow hover:shadow-xl transition-shadow duration-300 cursor-pointer p-4 flex flex-col items-center" data-id="2" data-name="ลาเต้" data-price="45">
-                  <img src="https://via.placeholder.com/80" alt="ลาเต้" class="w-24 h-24 object-cover mb-4 rounded-full border-2 border-gray-200">
-                  <h3 class="font-medium text-center text-gray-800">ลาเต้</h3>
-                  <p class="text-sm text-gray-500">฿45</p>
-                </div>
-                
+                <?php endforeach; ?>
                 
                 
 
@@ -145,16 +144,7 @@
         </div>
       
         <script>
-          const products = [
-            { id: 1, name: 'กาแฟดำ', price: 35 },
-            { id: 2, name: 'ลาเต้', price: 45 },
-            { id: 3, name: 'คาปูชิโน', price: 50 },
-            { id: 4, name: 'ชาเขียว', price: 40 },
-            { id: 5, name: 'ชานม', price: 45 },
-            { id: 6, name: 'น้ำส้ม', price: 30 },
-            { id: 7, name: 'เค้กช็อคโกแลต', price: 60 },
-            { id: 8, name: 'แซนด์วิชทูน่า', price: 50 },
-          ]
+          const products = <?php echo json_encode($products); ?>;
       
           const cart = {}
           let cash = 0
@@ -198,7 +188,7 @@
                 const itemDiv = document.createElement('div')
                 itemDiv.className = 'flex justify-between items-center mb-3'
                 itemDiv.innerHTML = `
-                  <span class="text-gray-800">${product.name}</span>
+                  <span class="text-gray-800">${product.productName}</span>
                   <div class="flex items-center">
                     <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 p-1 rounded" onclick="removeFromCart(${product.id})">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -264,6 +254,7 @@
                 cashInput.value = ''
                 cash = 0
                 renderCart()
+                updateStock()
               }
             })
           }
@@ -355,6 +346,19 @@
               addToCart(productId)
             })
           })
+
+          // ฟังก์ชันอัปเดตสต๊อก
+          function updateStock() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '../php/update_stock.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.onreadystatechange = function () {
+              if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log('Stock updated successfully');
+              }
+            };
+            xhr.send(JSON.stringify(cart));
+          }
         </script>
       </main>
   </div>

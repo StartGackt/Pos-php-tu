@@ -25,7 +25,7 @@
           <i class="fas fa-box fa-fw mr-3"></i>
           Order Products
         </a>     
-        <a class="w-full flex items-center px-3 py-2 hover:bg-blue-50 hover:text-blue-600">
+        <a href="allcate.php" class="w-full flex items-center px-3 py-2 hover:bg-blue-50 hover:text-blue-600 " >
           <i class="fas fa-tags fa-fw mr-3"></i>
           Categories
         </a>
@@ -129,6 +129,19 @@
           function closeModal() {
             document.getElementById('productModal').classList.add('hidden');
           }
+
+          // ฟังก์ชันอัปเดตสต๊อก
+          function updateStock() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '../php/update_stock.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.onreadystatechange = function () {
+              if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log('Stock updated successfully');
+              }
+            };
+            xhr.send(JSON.stringify(cart));
+          }
         </script>
 
         <?php
@@ -153,6 +166,8 @@
                           window.location.href = "productcate.php";
                         });
                       </script>';
+                // Call updateStock function after successful product addition
+                echo '<script>updateStock();</script>';
             }
         }
 
