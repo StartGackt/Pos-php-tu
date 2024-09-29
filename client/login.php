@@ -8,36 +8,14 @@
     <link rel="stylesheet" href="https://unpkg.com/franken-ui-releases@0.0.13/dist/default.min.css"/>
     <link rel="stylesheet" href="styles.css">
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.1/dist/sweetalert2.all.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.1/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="script.js"></script>
 </head>
 <body>
   
-  <?php
-  require_once '../php/connect.php';
-
-  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-      $username = $_POST['username'];
-      $password = $_POST['password'];
-
-      $stmt = $db->prepare('SELECT * FROM users WHERE username = :username');
-      $stmt->execute(['username' => $username]);
-      $user = $stmt->fetch();
-
-      if ($user && password_verify($password, $user['password'])) {
-          // Login successful
-          echo '<script>toastr.success("Login successful! Redirecting...");</script>';
-          header('Refresh: 0; URL=main.php');
-      } else {
-          // Login failed
-          echo '<script>toastr.error("Invalid username or password.");</script>';
-      }
-  }
-  ?>
-
   <div class="flex min-h-[80dvh] flex-col items-center justify-center">
     <br>
     <br>
@@ -66,6 +44,68 @@
       </form> 
     </div>
   </div>
-  
 
+  <?php
+  session_start();
+  if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+      $connectFile = $_SERVER['DOCUMENT_ROOT'] . '/Pos-php-tu/connect.php';
+      if (file_exists($connectFile)) {
+          include $connectFile;
+      } else {
+          echo "<script>
+                  Swal.fire({
+                      title: 'Error!',
+                      text: 'Connection file not found',
+                      icon: 'error',
+                      confirmButtonText: 'OK'
+                  });
+                </script>";
+          exit;
+      }
+
+      $username = $_POST['username'];
+      $password = $_POST['password'];
+
+      // Create table if not exists
+      $createTableSQL = "CREATE TABLE IF NOT EXISTS users (
+          id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          username VARCHAR(30) NOT NULL,
+          email VARCHAR(50) NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )";
+      $conn->exec($createTableSQL);
+
+      $stmt = $conn->prepare("SELECT * FROM users WHERE username = :username");
+      $stmt->bindParam(':username', $username);
+      $stmt->execute();
+      $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if ($user && password_verify($password, $user['password'])) {
+          echo "<script>
+                  Swal.fire({
+                      title: 'Login Successful',
+                      text: 'You have successfully logged in!',
+                      icon: 'success',
+                      confirmButtonText: 'OK'
+                  }).then((result) => {
+                      if (result.isConfirmed) {
+                          window.location.href = 'main.php';
+                      }
+                  });
+                </script>";
+      } else {
+          echo "<script>
+                  Swal.fire({
+                      title: 'Error!',
+                      text: 'Invalid username or password',
+                      icon: 'error',
+                      confirmButtonText: 'OK'
+                  });
+                </script>";
+      }
+  }
+  ?>
+
+</body>
 </html>

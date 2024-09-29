@@ -1,46 +1,3 @@
-<?php
-require_once '../php/connect.php';
-
-$errors = [];
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $confirmPassword = $_POST['confirm-password'] ?? '';
-
-    if (empty($username)) {
-        $errors['username'] = 'Username is required';
-    }
-
-    if (empty($email)) {
-        $errors['email'] = 'Email is required';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors['email'] = 'Invalid email format';
-    }
-
-    if (empty($password)) {
-        $errors['password'] = 'Password is required';
-    }
-
-    if ($password !== $confirmPassword) {
-        $errors['confirm_password'] = 'Passwords do not match';
-    }
-
-    if (empty($errors)) {
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        $stmt = $db->prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
-        if ($stmt->execute([$username, $email, $hashedPassword])) {
-            header('Location: login.php');
-            exit;
-        } else {
-            $errors['general'] = 'Registration failed. Please try again.';
-        }
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,10 +8,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://unpkg.com/franken-ui-releases@0.0.13/dist/default.min.css"/>
     <link rel="stylesheet" href="styles.css">
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="script.js"></script>
+    <script src="
+https://cdn.jsdelivr.net/npm/sweetalert2@11.14.1/dist/sweetalert2.all.min.js
+"></script>
+<link href="
+https://cdn.jsdelivr.net/npm/sweetalert2@11.14.1/dist/sweetalert2.min.css
+" rel="stylesheet">
 </head>
+
 <body>
 
   <div class="flex min-h-[80dvh] flex-col items-center justify-center">
@@ -72,23 +34,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="mb-4">
             <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
             <input type="text" name="username" id="username" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm hover:border-blue-500" required>
-            <small class="text-red-500" id="username-error"><?php echo $errors['username'] ?? ''; ?></small>
+            <small class="text-red-500" id="username-error"></small>
         </div>
         <div class="mb-4">
             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
             <input type="email" name="email" id="email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm hover:border-blue-500" required>
-            <small class="text-red-500" id="email-error"><?php echo $errors['email'] ?? ''; ?></small>
+            <small class="text-red-500" id="email-error"></small>
         </div>
         <div class="mb-4">
             <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
             <input type="password" name="password" id="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm hover:border-blue-500" required>
-            <small class="text-red-500" id="password-error"><?php echo $errors['password'] ?? ''; ?></small>
+            <small class="text-red-500" id="password-error"></small>
             <div id="password-strength" class="mt-1 text-sm"></div>
         </div>
         <div class="mb-4">
             <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
             <input type="password" name="confirm-password" id="confirm-password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm hover:border-blue-500" required>
-            <small class="text-red-500" id="confirm-password-error"><?php echo $errors['confirm_password'] ?? ''; ?></small>
+            <small class="text-red-500" id="confirm-password-error"></small>
         </div>
         <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Register</button>
         <p class="text-center mt-4">Already have an account? <a href="login.php" class="text-blue-600 hover:text-blue-800">Click here</a> to login.</p>
@@ -98,6 +60,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   </div>
   
+  <?php
+  if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+      $connectFile = $_SERVER['DOCUMENT_ROOT'] . '/Pos-php-tu/connect.php';
+      if (file_exists($connectFile)) {
+          include $connectFile;
+      } else {
+          echo "<script>
+                  Swal.fire({
+                      title: 'Error!',
+                      text: 'Connection file not found',
+                      icon: 'error',
+                      confirmButtonText: 'OK'
+                  });
+                </script>";
+          exit;
+      }
+
+      $username = $_POST['username'];
+      $email = $_POST['email'];
+      $password = $_POST['password'];
+      $confirm_password = $_POST['confirm-password'];
+
+      if ($password !== $confirm_password) {
+          echo "<script>
+                  Swal.fire({
+                      title: 'Error!',
+                      text: 'Passwords do not match',
+                      icon: 'error',
+                      confirmButtonText: 'OK'
+                  });
+                </script>";
+      } else {
+          // Check if username or email already exists
+          $stmt = $conn->prepare("SELECT * FROM users WHERE username = :username OR email = :email");
+          $stmt->bindParam(':username', $username);
+          $stmt->bindParam(':email', $email);
+          $stmt->execute();
+
+          if ($stmt->rowCount() > 0) {
+              echo "<script>
+                      Swal.fire({
+                          title: 'Error!',
+                          text: 'Username or email already exists',
+                          icon: 'error',
+                          confirmButtonText: 'OK'
+                      });
+                    </script>";
+          } else {
+              // Create table if not exists
+              $createTableSQL = "CREATE TABLE IF NOT EXISTS users (
+                  id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                  username VARCHAR(30) NOT NULL,
+                  email VARCHAR(50) NOT NULL,
+                  password VARCHAR(255) NOT NULL,
+                  reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+              )";
+              $conn->exec($createTableSQL);
+
+              // Hash the password
+              $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+              $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (:username, :email, :password)");
+              $stmt->bindParam(':username', $username);
+              $stmt->bindParam(':email', $email);
+              $stmt->bindParam(':password', $hashed_password);
+              if ($stmt->execute()) {
+                  echo "<script>
+                          Swal.fire({
+                              title: 'Registration Successful',
+                              text: 'You have successfully registered!',
+                              icon: 'success',
+                              confirmButtonText: 'OK'
+                          }).then((result) => {
+                              if (result.isConfirmed) {
+                                  window.location.href = 'login.php';
+                              }
+                          });
+                        </script>";
+              } else {
+                  echo "<script>
+                          Swal.fire({
+                              title: 'Error!',
+                              text: 'Registration failed',
+                              icon: 'error',
+                              confirmButtonText: 'OK'
+                          });
+                        </script>";
+              }
+          }
+      }
+  }
+  ?>
 
 </body>
 </html>
